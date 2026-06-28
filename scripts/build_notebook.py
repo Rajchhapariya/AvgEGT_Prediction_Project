@@ -32,7 +32,7 @@ warnings.filterwarnings('ignore')
     nb.cells.append(nbf.v4.new_markdown_cell("""## 1. Data Loading & Preprocessing
 Here we load the raw dataset, drop invalid or impossible values, and remove features that were excluded based on project specifications."""))
 
-    nb.cells.append(nbf.v4.new_code_cell("""DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
+    nb.cells.append(nbf.v4.new_code_cell("""DATA_PATH = os.path.join("..", "data", "raw", "AE_DATA_with_AvgEGT.csv")
 TARGET_COL = "AvgEGT"
 EXCLUDED_COLS = [
     "EXHAUST TEMP 1", "EXHAUST TEMP 2", "EXHAUST TEMP 3",
@@ -242,7 +242,8 @@ except Exception as e:
 
 print("All 220+ exhaustive plots have been rendered inline successfully!")"""))
 
-    with open('AvgEGT_Project_Notebook.ipynb', 'w') as f:
+    output_path = os.path.join("..", "notebooks", "AvgEGT_Project_Notebook.ipynb")
+    with open(output_path, 'w', encoding='utf-8') as f:
         nbf.write(nb, f)
 
 if __name__ == "__main__":

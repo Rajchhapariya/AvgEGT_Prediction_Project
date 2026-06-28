@@ -1,4 +1,5 @@
 import nbformat as nbf
+import os
 
 def create_notebook():
     nb = nbf.v4.new_notebook()
@@ -22,7 +23,7 @@ warnings.filterwarnings('ignore')
     nb.cells.append(nbf.v4.new_markdown_cell("""## 1. Data Loading & Row Cleaning
 Here we load the raw dataset and perform row-level cleaning (dropping duplicates and blanks). Notice that we are **not** dropping the excluded feature columns yet."""))
 
-    nb.cells.append(nbf.v4.new_code_cell("""DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
+    nb.cells.append(nbf.v4.new_code_cell("""DATA_PATH = os.path.join("..", "data", "raw", "AE_DATA_with_AvgEGT.csv")
 TARGET_COL = "AvgEGT"
 
 # Load data
@@ -95,7 +96,8 @@ try:
 except FileNotFoundError:
     print(f"Could not find {notebook_filename}. Please save the notebook first or check the filename!")"""))
 
-    with open('AvgEGT_PostCleaning_EDA_Notebook.ipynb', 'w', encoding='utf-8') as f:
+    output_path = os.path.join("..", "notebooks", "AvgEGT_PostCleaning_EDA_Notebook.ipynb")
+    with open(output_path, 'w', encoding='utf-8') as f:
         nbf.write(nb, f)
 
 if __name__ == "__main__":
