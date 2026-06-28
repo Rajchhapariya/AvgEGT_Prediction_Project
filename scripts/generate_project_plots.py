@@ -1,3 +1,11 @@
+"""
+Project: AvgEGT Prediction (Utility)
+Script: generate_project_plots.py
+Purpose: A lightweight plotting script. Unlike the exhaustive batch generator, this script only 
+         generates the 10 core "Executive Summary" diagnostic plots (e.g. Correlation heatmaps, 
+         Model Comparisons, and Error Distributions).
+Outputs: Creates and saves 10 images into the `generated_project_plots/` directory.
+"""
 import os
 import pandas as pd
 import numpy as np
@@ -14,17 +22,13 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # =====================================================================
-# Configuration & Setup
+# PHASE 1: CONFIGURATION & SETUP
 # =====================================================================
-# Path to the primary dataset
 DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
-# Output directory where all generated plots will be saved
 OUTPUT_DIR = "generated_project_plots" 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-# Define the target variable we are trying to predict
 TARGET_COL = "AvgEGT"
-# Features to exclude from modeling (based on project specifications)
 EXCLUDED_COLS = [
     "EXHAUST TEMP 1", "EXHAUST TEMP 2", "EXHAUST TEMP 3",
     "EXHAUST TEMP 4", "EXHAUST TEMP 5", "EXHAUST TEMP 6",
@@ -43,7 +47,7 @@ def main():
     df = pd.read_csv(DATA_PATH)
     
     # =====================================================================
-    # Data Cleaning & Preprocessing
+    # PHASE 2: DATA CLEANING & PREPROCESSING
     # =====================================================================
     # Drop duplicates and any remaining missing values for robustness
     df = df.drop_duplicates().dropna()
@@ -52,19 +56,19 @@ def main():
     if TARGET_COL in df.columns:
         df = df[df[TARGET_COL] <= 1000]
     
-    # Drop excluded columns
+    # Drop excluded columns to prevent data leakage
     drop_cols = [c for c in EXCLUDED_COLS if c in df.columns]
     df_clean = df.drop(columns=drop_cols)
     
     print(f"Data cleaned. Proceeding to generate plots in '{OUTPUT_DIR}' directory...")
     
     # =====================================================================
-    # 1. Exploratory Data Analysis (EDA) Plots
+    # PHASE 3: EXPLORATORY DATA ANALYSIS (EDA)
     # =====================================================================
     generate_eda_plots(df_clean)
     
     # =====================================================================
-    # Data Preparation for Modeling
+    # PHASE 4: DATA PREPARATION FOR MODELING
     # =====================================================================
     X = df_clean.drop(columns=[TARGET_COL])
     y = df_clean[TARGET_COL]
@@ -78,7 +82,7 @@ def main():
     X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X.columns, index=X_test.index)
     
     # =====================================================================
-    # 2. Model Evaluation & Diagnostic Plots
+    # PHASE 5: MODEL EVALUATION DIAGNOSTICS
     # =====================================================================
     generate_model_evaluation_plots(X_train_scaled, X_test_scaled, y_train, y_test, X.columns)
     
@@ -88,12 +92,10 @@ def main():
 def generate_eda_plots(df):
     """
     Generates and saves Exploratory Data Analysis (EDA) plots.
-    These plots help understand the distribution and correlation of features.
     """
     print("Generating EDA plots...")
     
-    # Plot 1: Target Distribution
-    # Shows the spread and skewness of the AvgEGT values.
+    # Plot 1: Target Distribution (Spread and skewness of the AvgEGT)
     plt.figure(figsize=(10, 6))
     sns.histplot(df[TARGET_COL], bins=30, kde=True, color='skyblue')
     plt.title(f'Distribution of {TARGET_COL}')
@@ -103,8 +105,7 @@ def generate_eda_plots(df):
     plt.savefig(os.path.join(OUTPUT_DIR, '01_target_distribution.png'))
     plt.close()
     
-    # Plot 2: Correlation Heatmap
-    # Visualizes the linear relationships between all numerical features.
+    # Plot 2: Correlation Heatmap (Mathematical relationship between features)
     plt.figure(figsize=(12, 10))
     corr_matrix = df.corr()
     mask = np.triu(np.ones_like(corr_matrix, dtype=bool))
@@ -134,7 +135,6 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     """
     print("Training models and generating evaluation plots...")
     
-    # Train representative models for comparison (Random Forest and Extra Trees are usually top performers here)
     models = {
         'Random Forest': RandomForestRegressor(random_state=42, n_jobs=-1),
         'ExtraTrees': ExtraTreesRegressor(n_estimators=100, random_state=42, n_jobs=-1)
@@ -146,7 +146,6 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     best_model_instance = None
     best_y_pred = None
     
-    # Evaluate each model
     for name, model in models.items():
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
@@ -155,7 +154,6 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
         rmse = np.sqrt(mean_squared_error(y_test, y_pred))
         results.append({'Model': name, 'R2': r2, 'RMSE': rmse})
         
-        # Track the best model based on R2 Score
         if r2 > best_r2:
             best_r2 = r2
             best_model_name = name
@@ -165,7 +163,6 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     results_df = pd.DataFrame(results)
 
     # Plot 4: Model Comparison (R2 Score)
-    # Highlights which model captures the variance best (higher is better).
     plt.figure(figsize=(8, 6))
     sns.barplot(data=results_df, x='Model', y='R2', palette='viridis')
     plt.title('Model Comparison - R² Score')
@@ -176,7 +173,6 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     plt.close()
 
     # Plot 5: Model Comparison (RMSE)
-    # Highlights which model has the lowest average prediction error (lower is better).
     plt.figure(figsize=(8, 6))
     sns.barplot(data=results_df, x='Model', y='RMSE', palette='magma')
     plt.title('Model Comparison - RMSE')
@@ -186,7 +182,7 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     plt.close()
 
     # Plot 6: Actual vs Predicted (Best Model)
-    # Perfect predictions would lie on the red dashed diagonal line.
+    # Perfect predictions lie on the red dashed diagonal line.
     plt.figure(figsize=(8, 8))
     plt.scatter(y_test, best_y_pred, alpha=0.5, color='blue')
     plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
@@ -198,7 +194,7 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     plt.close()
 
     # Plot 7: Residuals vs Predicted
-    # Shows if errors (residuals) have any pattern. We want them scattered randomly around 0.
+    # We want mistakes (residuals) scattered randomly around 0.
     residuals = y_test - best_y_pred
     plt.figure(figsize=(10, 6))
     plt.scatter(best_y_pred, residuals, alpha=0.5, color='purple')
@@ -211,7 +207,6 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     plt.close()
 
     # Plot 8: Feature Importance
-    # Identifies which features the tree-based model relied on the most.
     if hasattr(best_model_instance, 'feature_importances_'):
         importances = best_model_instance.feature_importances_
         indices = np.argsort(importances)[::-1]
@@ -226,7 +221,7 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
         plt.close()
 
     # Plot 9: Error Distribution (Histogram of Residuals)
-    # Checks if the residuals are normally distributed (a key assumption in regression).
+    # Checks if errors are normally distributed.
     plt.figure(figsize=(10, 6))
     sns.histplot(residuals, bins=30, kde=True, color='salmon')
     plt.title('Distribution of Residuals (Errors)')
@@ -238,9 +233,9 @@ def generate_model_evaluation_plots(X_train, X_test, y_train, y_test, feature_na
     plt.close()
     
     # Plot 10: Binned Confusion Matrix
-    # Converts regression continuous values into bins to visualize classification-like hit-rates.
+    # Converts regression values into bins to visualize classification-like hit-rates.
     try:
-        bins = np.linspace(y_test.min(), y_test.max(), 5) # Divide into 4 quantiles/bins
+        bins = np.linspace(y_test.min(), y_test.max(), 5) # Divide into 4 quantiles
         y_test_binned = np.digitize(y_test, bins)
         y_pred_binned = np.digitize(best_y_pred, bins)
         cm = confusion_matrix(y_test_binned, y_pred_binned)

@@ -1,8 +1,16 @@
+"""
+Project: AvgEGT Prediction (Utility)
+Script: generate_exhaustive_plots.py
+Purpose: A massive batch-rendering engine. Instead of outputting to a Jupyter Notebook,
+         this script silently computes and saves over 200+ distinct statistical plots
+         (Distributions, Boxplots, SHAP charts) directly to folders on the local hard drive.
+Outputs: Creates multiple subdirectories inside `generated_exhaustive_plots/`.
+"""
 import os
 import pandas as pd
 import numpy as np
 import matplotlib
-matplotlib.use('Agg') # Use non-interactive backend for batch generation
+matplotlib.use('Agg') # Use non-interactive backend (generates images silently in the background)
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.model_selection import train_test_split
@@ -15,12 +23,12 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # =====================================================================
-# Configuration & Setup
+# PHASE 1: CONFIGURATION & SETUP
 # =====================================================================
 DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
 OUTPUT_BASE = "generated_exhaustive_plots"
 
-# Subdirectories to mimic the project structure
+# Subdirectories to structurally organize the 220+ images
 DIRS = {
     "full_eda": os.path.join(OUTPUT_BASE, "full_dataset_eda"),
     "sanitized_eda": os.path.join(OUTPUT_BASE, "sanitized_dataset_eda"),
@@ -29,7 +37,7 @@ DIRS = {
     "interpretability": os.path.join(OUTPUT_BASE, "model_interpretability")
 }
 
-# Create all necessary subdirectories
+# Ensure all folders exist before saving to them
 for d in DIRS.values():
     os.makedirs(d, exist_ok=True)
 
@@ -52,15 +60,16 @@ def main():
         
     df_raw = pd.read_csv(DATA_PATH)
     
-    # ---------------------------------------------------------
-    # 1. Full Dataset EDA
-    # ---------------------------------------------------------
+    # =====================================================================
+    # PHASE 2: FULL DATASET EDA BATCH
+    # =====================================================================
+    # Generate charts for the absolutely raw data (including blanks and duplicates)
     print("Generating Full Dataset EDA plots (this may take a moment)...")
     generate_feature_loops(df_raw, DIRS["full_eda"], prefix="full")
     
-    # ---------------------------------------------------------
-    # 2. Data Cleaning & Preprocessing
-    # ---------------------------------------------------------
+    # =====================================================================
+    # PHASE 3: DATA CLEANING & SANITIZATION
+    # =====================================================================
     df_clean = df_raw.drop_duplicates().dropna()
     if TARGET_COL in df_clean.columns:
         df_clean = df_clean[df_clean[TARGET_COL] <= 1000]
@@ -68,45 +77,37 @@ def main():
     drop_cols = [c for c in EXCLUDED_COLS if c in df_clean.columns]
     df_clean = df_clean.drop(columns=drop_cols)
     
-    # ---------------------------------------------------------
-    # 3. Sanitized Dataset EDA
-    # ---------------------------------------------------------
+    # Generate charts for the perfectly clean data
     print("Generating Sanitized Dataset EDA plots...")
     generate_feature_loops(df_clean, DIRS["sanitized_eda"], prefix="sanitized")
     
-    # ---------------------------------------------------------
-    # Data Preparation for Modeling
-    # ---------------------------------------------------------
+    # =====================================================================
+    # PHASE 4: DATA PREPARATION & MODEL TRAINING
+    # =====================================================================
     X = df_clean.drop(columns=[TARGET_COL])
     y = df_clean[TARGET_COL]
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
     scaler = StandardScaler()
     
-    # Keep as DataFrames to retain feature names for SHAP and plots
+    # Keep as DataFrames to retain feature names (Critical for SHAP labels!)
     X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X.columns, index=X_train.index)
     X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X.columns, index=X_test.index)
     
-    # ---------------------------------------------------------
-    # 4. Model Training & Evaluation
-    # ---------------------------------------------------------
     best_model, best_name, best_y_pred, results_df = train_and_evaluate(X_train_scaled, X_test_scaled, y_train, y_test)
     
-    # ---------------------------------------------------------
-    # 5. Winning Model Regression Plots
-    # ---------------------------------------------------------
+    # =====================================================================
+    # PHASE 5: EXECUTIVE & DIAGNOSTIC BATCH PLOTTING
+    # =====================================================================
     print("Generating Winning Model plots...")
     generate_winning_model_plots(y_test, best_y_pred, best_name)
     
-    # ---------------------------------------------------------
-    # 6. Advanced Executive Plots
-    # ---------------------------------------------------------
     print("Generating Advanced Executive plots...")
     generate_executive_plots(best_model, results_df, X.columns, df_clean)
     
-    # ---------------------------------------------------------
-    # 7. Model Interpretability (SHAP)
-    # ---------------------------------------------------------
+    # =====================================================================
+    # PHASE 6: SHAP (GAME THEORY) INTERPRETABILITY
+    # =====================================================================
     print("Generating Model Interpretability (SHAP) plots...")
     generate_shap_plots(best_model, X_train_scaled)
     
@@ -121,7 +122,6 @@ def generate_feature_loops(df, out_dir, prefix=""):
     1. Distribution (Histogram)
     2. Boxplot (Outlier detection)
     3. Scatter plot vs Target
-    This replicates the exhaustive EDA folders.
     """
     features = [c for c in df.columns if c != TARGET_COL]
     
@@ -266,7 +266,6 @@ def generate_shap_plots(model, X_train_scaled):
         # SHAP requires a TreeExplainer for tree-based models like Random Forest/Extra Trees
         explainer = shap.TreeExplainer(model)
         # Calculate SHAP values for a subset to save time (or full if dataset is small)
-        # Here we use the full X_train since dataset is around 1000 rows
         shap_values = explainer.shap_values(X_train_scaled)
         
         # 1. SHAP Summary Plot (Bar) - Global Importance

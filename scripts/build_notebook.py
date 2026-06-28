@@ -1,6 +1,18 @@
+"""
+Project: AvgEGT Prediction (Utility)
+Script: build_notebook.py
+Purpose: Programmatically generates the primary `AvgEGT_Project_Notebook.ipynb`.
+         This master notebook contains the full end-to-end Machine Learning pipeline 
+         (Data Loading, Leakage Sanitization, XGBoost Training) AND the massive 
+         exhaustive plotting loops for inline visualization.
+Outputs: Saves the notebook file to the `notebooks/` directory.
+"""
 import nbformat as nbf
 import os
 
+# =====================================================================
+# PHASE 1: NOTEBOOK INITIALIZATION
+# =====================================================================
 def create_notebook():
     nb = nbf.v4.new_notebook()
 
@@ -9,7 +21,7 @@ def create_notebook():
 This notebook contains a step-by-step walkthrough of the Machine Learning pipeline to predict `AvgEGT` (Average Exhaust Gas Temperature).
 It includes inline plots for Exploratory Data Analysis (EDA) and Model Evaluation, as well as an exhaustive generation section that renders all 220+ plots inline."""))
 
-    # Imports
+    # Python Imports
     nb.cells.append(nbf.v4.new_code_cell("""import os
 import pandas as pd
 import numpy as np
@@ -28,7 +40,9 @@ import warnings
 warnings.filterwarnings('ignore')
 %matplotlib inline"""))
 
-    # Data Loading
+    # =====================================================================
+    # PHASE 2: DATA LOADING & PREPROCESSING
+    # =====================================================================
     nb.cells.append(nbf.v4.new_markdown_cell("""## 1. Data Loading & Preprocessing
 Here we load the raw dataset, drop invalid or impossible values, and remove features that were excluded based on project specifications."""))
 
@@ -41,22 +55,25 @@ EXCLUDED_COLS = [
 ]
 
 df = pd.read_csv(DATA_PATH)
-df_raw = df.copy() # Keep a copy for the exhaustive raw EDA
+df_raw = df.copy() # We keep a raw, uncleaned copy here specifically for the 'Raw EDA' loop later
 
+# Clean rows
 df = df.drop_duplicates().dropna()
 
-# Remove extreme outliers in Target
+# Remove extreme anomalies
 if TARGET_COL in df.columns:
     df = df[df[TARGET_COL] <= 1000]
 
-# Drop excluded columns
+# Remove columns to prevent Data Leakage (The exhaust temps perfectly average to the target)
 drop_cols = [c for c in EXCLUDED_COLS if c in df.columns]
 df_clean = df.drop(columns=drop_cols)
 
 print(f"Final Data Shape: {df_clean.shape}")
 df_clean.head()"""))
 
-    # EDA
+    # =====================================================================
+    # PHASE 3: CORE EDA
+    # =====================================================================
     nb.cells.append(nbf.v4.new_markdown_cell("""## 2. Exploratory Data Analysis (EDA) (Core Plots)
 Let's analyze the distribution of our target variable and understand how our features correlate with one another."""))
 
@@ -76,6 +93,7 @@ sns.heatmap(corr_matrix, mask=mask, cmap='coolwarm', annot=False, fmt='.2f')
 plt.title('Feature Correlation Heatmap')
 plt.show()"""))
 
+    # Find the top 4 columns that have the strongest mathematical relationship to the temperature
     nb.cells.append(nbf.v4.new_code_cell("""# Plot 3: Top Correlated Features vs Target
 top_corr_features = corr_matrix[TARGET_COL].abs().sort_values(ascending=False).index[1:5]
 plt.figure(figsize=(20, 5))
@@ -86,7 +104,9 @@ for i, feature in enumerate(top_corr_features, 1):
 plt.tight_layout()
 plt.show()"""))
 
-    # Model Prep
+    # =====================================================================
+    # PHASE 4: MODEL PREPARATION & TRAINING
+    # =====================================================================
     nb.cells.append(nbf.v4.new_markdown_cell("""## 3. Data Preparation & Model Training
 We will split our data into training (90%) and testing (10%) sets, standardize the numerical features, and train a suite of models including XGBoost, which tends to perform extremely well on this dataset."""))
 
@@ -95,11 +115,12 @@ y = df_clean[TARGET_COL]
 
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=42)
 
+# StandardScaler ensures large numbers don't overpower small numbers in the algorithms
 scaler = StandardScaler()
 X_train_scaled = pd.DataFrame(scaler.fit_transform(X_train), columns=X.columns, index=X_train.index)
 X_test_scaled = pd.DataFrame(scaler.transform(X_test), columns=X.columns, index=X_test.index)
 
-# Including all models from the original project to ensure the true winner (usually XGBoost) is captured
+# A massive shootout of 5 different AI architectures
 models = {
     'Linear Regression': LinearRegression(),
     'Decision Tree': DecisionTreeRegressor(random_state=42),
@@ -115,6 +136,7 @@ for name, model in models.items():
     model.fit(X_train_scaled, y_train)
     y_pred = model.predict(X_test_scaled)
     
+    # R2 is the percentage of reality the AI successfully understands
     r2 = r2_score(y_test, y_pred)
     rmse = np.sqrt(mean_squared_error(y_test, y_pred))
     results.append({'Model': name, 'R2': r2, 'RMSE': rmse})
@@ -128,7 +150,9 @@ for name, model in models.items():
 results_df = pd.DataFrame(results).sort_values('R2', ascending=False)
 results_df"""))
 
-    # Model Evaluation
+    # =====================================================================
+    # PHASE 5: DIAGNOSTICS & EVALUATION
+    # =====================================================================
     nb.cells.append(nbf.v4.new_markdown_cell("""## 4. Model Evaluation & Diagnostics (Core Plots)
 Let's visually compare the models and dive deep into the winning model's performance."""))
 
@@ -148,6 +172,7 @@ plt.tight_layout()
 plt.show()"""))
 
     nb.cells.append(nbf.v4.new_code_cell("""# Plot 6: Actual vs Predicted (Best Model)
+# A perfect model forms a perfect straight red line.
 plt.figure(figsize=(8, 8))
 plt.scatter(y_test, best_y_pred, alpha=0.5, color='blue')
 plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], 'r--', lw=2)
@@ -157,6 +182,7 @@ plt.ylabel('Predicted AvgEGT')
 plt.show()"""))
 
     nb.cells.append(nbf.v4.new_code_cell("""# Plot 7 & 8: Residual Diagnostics
+# Residuals are the "mistakes". We want them randomly scattered around zero.
 residuals = y_test - best_y_pred
 
 fig, axes = plt.subplots(1, 2, figsize=(16, 6))
@@ -175,6 +201,7 @@ plt.tight_layout()
 plt.show()"""))
 
     nb.cells.append(nbf.v4.new_code_cell("""# Plot 9: Feature Importance
+# Displays exactly which sensors the AI relied on most to make its temperature predictions.
 if hasattr(best_model_instance, 'feature_importances_'):
     importances = best_model_instance.feature_importances_
     indices = np.argsort(importances)[::-1]
@@ -186,7 +213,9 @@ if hasattr(best_model_instance, 'feature_importances_'):
     plt.xlabel('Relative Importance')
     plt.show()"""))
 
-    # Exhaustive Plot Generation Section
+    # =====================================================================
+    # PHASE 6: EXHAUSTIVE BATCH PLOTTING
+    # =====================================================================
     nb.cells.append(nbf.v4.new_markdown_cell("""## 5. Exhaustive Plot Generation (Inline)
 This section programmatically generates all ~220 plots across the entire dataset and renders them directly below the cell.
 **Warning:** Depending on your machine, displaying hundreds of images inline may cause the notebook to consume significant memory."""))
@@ -223,6 +252,7 @@ generate_feature_loops_inline(df_clean, prefix="sanitized")
 
 print("Generating SHAP interpretability plots (Inline)...")
 try:
+    # SHAP uses Game Theory to prove exactly *why* the AI made a decision, not just what it decided.
     explainer = shap.TreeExplainer(best_model_instance)
     shap_values = explainer.shap_values(X_train_scaled)
     

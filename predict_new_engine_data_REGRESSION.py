@@ -1,20 +1,36 @@
+"""
+Project: AvgEGT Prediction (Regression Pipeline)
+Script: predict_new_engine_data_REGRESSION.py
+Purpose: A client-facing inference script. It does NOT train a model. Instead, it re-trains/loads 
+         the XGBoost logic instantly and allows a user to type in 12 live sensor readings 
+         (like FO TEMP and TC LO PRESS) to predict the exact temperature of the exhaust in real-time.
+Inputs:  `NEW_ENGINE_DATA` dictionary (hardcoded below for client testing)
+Outputs: Prints the exact predicted 'AvgEGT' decimal temperature to the terminal.
+"""
 import os
 import pandas as pd
 import numpy as np
 import warnings
-warnings.filterwarnings('ignore')
+warnings.filterwarnings('ignore') # Keep the terminal output clean for the client
 
 from sklearn.preprocessing import StandardScaler
 from xgboost import XGBRegressor
 
 print("Loading data and initializing Regression Model...")
 
-# 1. Load Data for Training/Scaling
+# =====================================================================
+# PHASE 1: BACKGROUND DATA PREPARATION
+# =====================================================================
+# Even though we are just predicting, we must load the original dataset to fit our StandardScaler.
+# A StandardScaler needs to see the original "min/max/average" of the historical data so it knows
+# exactly how to scale the client's new live input data down to the exact same proportion!
 DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
 df = pd.read_csv(DATA_PATH).drop_duplicates().dropna()
+
+# Drop anomalies
 df = df[df['AvgEGT'] <= 1000]
 
-# These are the 13 required columns (12 features + 1 target)
+# Exclude the "cheating" columns to prevent data leakage, ensuring we match the training phase exactly
 excluded_cols = [
     "EXHAUST TEMP 1", "EXHAUST TEMP 2", "EXHAUST TEMP 3", 
     "EXHAUST TEMP 4", "EXHAUST TEMP 5", "EXHAUST TEMP 6",
@@ -22,22 +38,24 @@ excluded_cols = [
 ]
 df = df.drop(columns=[c for c in excluded_cols if c in df.columns])
 
+# Separate Features (X) from Target (y)
 X = df.drop(columns=['AvgEGT'])
 y = df['AvgEGT']
 
-# Scale and Train
+# Scale the data using the historical means and variances
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
+
+# Re-initialize the winning XGBoost algorithm using the exact same hyperparameters discovered in pipeline
 model = XGBRegressor(n_estimators=500, learning_rate=0.05, max_depth=6, random_state=42, n_jobs=-1)
 model.fit(X_scaled, y)
 
 
 # =====================================================================
-# ⬇️ ENTER YOUR NEW ENGINE SENSOR DATA BELOW ⬇️
+# PHASE 2: CLIENT INPUT (ENTER NEW SENSOR DATA)
 # =====================================================================
-# You can change these numbers to simulate any engine condition!
-# (These default values are typical baseline numbers)
-
+# Client Instructions: Change these numbers to simulate any engine condition.
+# This dictionary represents a single "snapshot" of the engine telemetry at a given second.
 NEW_ENGINE_DATA = {
     'KW': 3200.0,
     'LO IN TEMP': 48.0,
@@ -55,21 +73,28 @@ NEW_ENGINE_DATA = {
 # =====================================================================
 
 
+# =====================================================================
+# PHASE 3: EXECUTE INFERENCE (PREDICTION)
+# =====================================================================
 print("\n--- Executing Inference ---")
-# Convert input to dataframe
+
+# Convert the dictionary into a Pandas DataFrame format that the AI expects
 new_df = pd.DataFrame([NEW_ENGINE_DATA])
 
-# Ensure columns match training data exactly
+# Sanity Check: Ensure the client didn't accidentally delete or misspell a required sensor!
 missing_cols = set(X.columns) - set(new_df.columns)
 if missing_cols:
     print(f"ERROR: Missing columns in input data: {missing_cols}")
 else:
-    # Scale input using the EXACT SAME scaler
+    # CRITICAL: We must scale the client's input data using the EXACT SAME historical scaler object.
+    # If we didn't scale this, the AI (expecting numbers between -3 and 3) would freak out 
+    # when it sees a KW value of 3200.0!
     new_df_scaled = scaler.transform(new_df[X.columns])
     
-    # Predict!
+    # Feed the scaled numbers into the XGBoost brain to get the predicted temperature
     prediction = model.predict(new_df_scaled)[0]
     
+    # Print out the results in a friendly dashboard format
     print("\n[INPUT SENSORS]:")
     for k, v in NEW_ENGINE_DATA.items():
         print(f"  {k}: {v}")
