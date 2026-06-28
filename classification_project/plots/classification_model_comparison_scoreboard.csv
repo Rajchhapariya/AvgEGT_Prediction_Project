@@ -1,0 +1,6 @@
+Model,Accuracy,Precision,Recall,F1_Score
+XGBoost,0.978,1.0,0.7778,0.875
+LightGBM,0.967,0.875,0.7778,0.8235
+Random Forest,0.967,1.0,0.6667,0.8
+Extra Trees,0.956,0.8571,0.6667,0.75
+Logistic Regression,0.8681,0.4211,0.8889,0.5714

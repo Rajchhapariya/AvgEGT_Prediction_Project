@@ -1,0 +1,27 @@
+# Python Virtual Environments
+venv/
+venv311/
+env/
+.env
+
+# Python Cache Files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDE and Editor Files
+.vscode/
+.idea/
+.gemini/
+.DS_Store
+
+# Temporary & Log Files
+*.log
+scratch/
+.system_generated/
+
+# NOTE ON DATA & MODELS:
+# CSV and PKL files are currently tracked because the dataset is small.
+# If large models or datasets are added later, uncomment the lines below:
+# *.pkl
+# *.csv
