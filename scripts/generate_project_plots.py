@@ -24,7 +24,9 @@ warnings.filterwarnings('ignore')
 # =====================================================================
 # PHASE 1: CONFIGURATION & SETUP
 # =====================================================================
-DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
+DATA_PATH = os.path.join("..", "data", "raw", "AE_DATA_with_AvgEGT.csv")
+if not os.path.exists(DATA_PATH):
+    DATA_PATH = os.path.join("data", "raw", "AE_DATA_with_AvgEGT.csv")
 OUTPUT_DIR = "generated_project_plots" 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
