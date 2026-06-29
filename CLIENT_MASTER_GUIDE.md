@@ -41,14 +41,26 @@ Below is the exhaustive list of every single file and folder in this project and
 
 ### ⚙️ 4. The Factory Floor (The Python Scripts)
 *You never need to touch these files. These are the Python scripts (`.py`) that built the AI behind the scenes.*
+
+**The Main Engine Builders:**
 * **`regression_pipeline.py` (File):** **(Use: The Builder)** If you get new data next year, run this script to automatically train a smarter Temperature AI.
 * **`classification_project/classification_pipeline.py` (File):** **(Use: The Builder)** Run this to automatically train a smarter Alarm AI on new data.
 * **`predict_new_engine_data_REGRESSION.py` (File):** **(Use: Live Monitor)** A script designed to be plugged into live engine sensors to predict temperatures 24/7.
 * **`classification_project/predict_new_engine_data_CLASSIFICATION.py` (File):** **(Use: Live Monitor)** A script designed to be plugged into live engine sensors to trigger alarms 24/7.
-* **`scripts/` (Folder):** Contains automated reporting scripts.
-    * **`scripts/build_notebook.py` (File):** Automates the writing of the Engineering Audit notebook.
-    * **`scripts/build_client_dashboard.py` (File):** Automates the writing of the Daily Operations dashboard.
-    * **`classification_project/build_classification_notebook.py` (File):** Automates the writing of the Safety Audit notebook.
+
+**The Document Generators (`scripts/` folder):**
+* **`scripts/build_notebook.py` (File):** Automates the writing of the Engineering Audit notebook.
+* **`scripts/build_client_dashboard.py` (File):** Automates the writing of the Daily Operations dashboard.
+* **`classification_project/build_classification_notebook.py` (File):** Automates the writing of the Safety Audit notebook.
+
+**The Individual Model Scripts (`models/` folders):**
+*(Use: The Laboratory. When we were deciding which AI was the smartest, we tested 20 different mathematical architectures. Each of these files is the code for one specific type of AI brain. The Pipelines test them all, and pick the winner.)*
+
+* **Temperature AI Tests (`models/`):**
+  * `catboost_model.py`, `decision_tree.py`, `elasticnet.py`, `extra_trees.py`, `gradient_boosting.py`, `keras_deep_nn.py`, `knn.py`, `lasso_regression.py`, `lightgbm_model.py`, `linear_regression.py`, `mlp_regressor.py`, `random_forest.py`, `ridge_regression.py`, `svr.py`, `xgboost_model.py` (The Winner).
+  
+* **Fire Alarm AI Tests (`classification_project/models/`):**
+  * `extra_trees.py`, `lightgbm_model.py`, `logistic_regression.py`, `random_forest.py`, `xgboost_model.py` (The Winner).
 
 ---
 
