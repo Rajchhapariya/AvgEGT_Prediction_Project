@@ -31,7 +31,7 @@ for model_file in regression_models:
     nb.cells.append(new_code_cell(base_code))
     
     # Plotting Imports
-    nb.cells.append(new_code_cell("import matplotlib.pyplot as plt\nimport seaborn as sns\nimport scipy.stats as stats\nimport numpy as np\nimport pandas as pd"))
+    nb.cells.append(new_code_cell(f"model_name = '{model_name}'\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport scipy.stats as stats\nimport numpy as np\nimport pandas as pd"))
     
     # 1. Actual vs Predicted Scatter
     nb.cells.append(new_markdown_cell("### 1. Actual vs Predicted (Scatter Plot)\n**(Use: Accuracy Proof)** The red line represents perfect reality. The blue dots are the AI's predictions. The closer the dots hug the red line, the more perfectly accurate the AI is."))
@@ -83,7 +83,7 @@ for model_file in classification_models:
     nb.cells.append(new_code_cell(base_code))
     
     # Plotting Imports
-    nb.cells.append(new_code_cell("import matplotlib.pyplot as plt\nimport seaborn as sns\nimport numpy as np\nimport pandas as pd\nfrom sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, brier_score_loss\nfrom sklearn.calibration import calibration_curve"))
+    nb.cells.append(new_code_cell(f"model_name = '{model_name}'\nimport matplotlib.pyplot as plt\nimport seaborn as sns\nimport numpy as np\nimport pandas as pd\nfrom sklearn.metrics import confusion_matrix, roc_curve, auc, precision_recall_curve, brier_score_loss\nfrom sklearn.calibration import calibration_curve"))
     
     # Setup Predict Proba
     nb.cells.append(new_code_cell("try:\n    y_prob = model.predict_proba(X_test_s)[:, 1]\nexcept:\n    if hasattr(model, 'decision_function'):\n        y_prob = model.decision_function(X_test_s)\n        y_prob = (y_prob - y_prob.min()) / (y_prob.max() - y_prob.min())\n    else:\n        y_prob = y_pred"))
