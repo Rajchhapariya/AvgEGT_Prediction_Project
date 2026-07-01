@@ -56,3 +56,18 @@ This project contains over 220 visual charts and scoreboards proving the validit
 * **Scoreboards**: You can find Excel-ready CSV files containing the final ranked scores of all 16 tested AI models in `plots/regression_model_comparison_scoreboard.csv` and `classification_project/plots/classification_model_comparison_scoreboard.csv`.
 * **Interactive 3D Plots**: Located inside `plots/advanced_executive_plots/`. Open the `.html` files in any web browser to click, drag, and rotate the 3D data topologies.
 * **Visual Evidence**: All other folders (like `training_history`, `model_interpretability`, and `train_test_comparisons`) contain detailed graphical proofs of the model's accuracy.
+
+---
+
+## 5. Troubleshooting Jupyter Notebooks (Kernel Errors)
+
+If you attempt to run the `Client_Prediction_Dashboard.ipynb` notebook and you encounter a **`ModuleNotFoundError` (like `No module named 'xgboost'`)**, it means your Jupyter Notebook is using your computer's default Python engine instead of the project's virtual environment. 
+
+To fix this, you must register the virtual environment as a "Jupyter Kernel":
+
+1. Open your terminal and activate the virtual environment (see Step 2 above).
+2. Install the kernel bridge by typing: `pip install ipykernel`
+3. Register the environment to Jupyter by typing: `python -m ipykernel install --user --name=venv311 --display-name "Python (venv311)"`
+4. **Refresh your browser window** (or restart your IDE, like VS Code). 
+5. In the top-right corner of your Jupyter Notebook, click the "Kernel" button. Change the kernel from your default Python to **`Python (venv311)`**. 
+6. Run the notebook again!
