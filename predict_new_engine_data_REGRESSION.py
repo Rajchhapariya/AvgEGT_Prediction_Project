@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore') # Keep the terminal output clean for the client
 
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBRegressor
+import joblib
 
 print("Loading data and initializing Regression Model...")
 
@@ -46,9 +46,8 @@ y = df['AvgEGT']
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Re-initialize the winning XGBoost algorithm using the exact same hyperparameters discovered in pipeline
-model = XGBRegressor(n_estimators=500, learning_rate=0.05, max_depth=6, random_state=42, n_jobs=-1)
-model.fit(X_scaled, y)
+# Load the pre-trained winning model from the pipeline
+model = joblib.load("final_model.pkl")
 
 
 # =====================================================================

@@ -14,7 +14,7 @@ import warnings
 warnings.filterwarnings('ignore') # Keep the output clean for the client
 
 from sklearn.preprocessing import StandardScaler
-from xgboost import XGBClassifier
+import joblib
 
 print("Loading data and initializing Classification Model...")
 
@@ -55,9 +55,8 @@ y_cls = (y_reg >= threshold).astype(int)
 scaler = StandardScaler()
 X_scaled = scaler.fit_transform(X)
 
-# Re-initialize the winning XGBoost classifier
-model = XGBClassifier(n_estimators=500, learning_rate=0.05, max_depth=6, random_state=42, n_jobs=-1)
-model.fit(X_scaled, y_cls)
+# Load the pre-trained winning classifier from the pipeline
+model = joblib.load("classification_model.pkl")
 
 
 # =====================================================================

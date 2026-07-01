@@ -1,0 +1,8 @@
+=========================================
+        PROJECT QA AUDIT REPORT
+=========================================
+
+[FAILED] FOUND 1 BUGS OR ISSUES:
+
+[HARDCODED PATH] Found 'C:/Users/Rajch' in ..\scripts\run_qa_audit.py
+-----------------------------------------
