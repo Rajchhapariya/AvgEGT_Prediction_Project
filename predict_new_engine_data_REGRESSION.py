@@ -1,17 +1,17 @@
 """
 Project: AvgEGT Prediction (Regression Pipeline)
 Script: predict_new_engine_data_REGRESSION.py
-Purpose: A client-facing inference script. It does NOT train a model. Instead, it re-trains/loads 
+Purpose: A standalone inference script. It does NOT train a model. Instead, it re-trains/loads 
          the XGBoost logic instantly and allows a user to type in 12 live sensor readings 
          (like FO TEMP and TC LO PRESS) to predict the exact temperature of the exhaust in real-time.
-Inputs:  `NEW_ENGINE_DATA` dictionary (hardcoded below for client testing)
+Inputs:  `NEW_ENGINE_DATA` dictionary (hardcoded below for testing)
 Outputs: Prints the exact predicted 'AvgEGT' decimal temperature to the terminal.
 """
 import os
 import pandas as pd
 import numpy as np
 import warnings
-warnings.filterwarnings('ignore') # Keep the terminal output clean for the client
+warnings.filterwarnings('ignore') # Keep terminal output clean
 
 from sklearn.preprocessing import StandardScaler
 import joblib
@@ -51,9 +51,9 @@ model = joblib.load("final_model.pkl")
 
 
 # =====================================================================
-# PHASE 2: CLIENT INPUT (ENTER NEW SENSOR DATA)
+# PHASE 2: LIVE SENSOR INPUT (ENTER NEW SENSOR DATA)
 # =====================================================================
-# Client Instructions: Change these numbers to simulate any engine condition.
+# Instructions: Change these numbers to simulate any engine condition.
 # This dictionary represents a single "snapshot" of the engine telemetry at a given second.
 NEW_ENGINE_DATA = {
     'KW': 3200.0,

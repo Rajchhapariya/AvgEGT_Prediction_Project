@@ -1,14 +1,8 @@
-# The Ultimate Master Guide: Engine AI Prediction System
-
-Welcome to your complete Engine AI project! If you have absolutely zero technical background, do not worry—this document was written specifically for you. 
-
-By the time you finish reading this, you will understand exactly how your new AI works, and exactly what **every single file, folder, and graph** in this entire project actually does for your business.
-
----
+# Architecture & System Reference Guide: Engine AI Telemetry System
 
 ## Part 1: How the AI Works (The Two Branches)
 
-Your engine is incredibly complex. To protect it, we built **two distinct AI systems**:
+The engine is incredibly complex. To protect it, we built **two distinct AI systems**:
 1. **Branch A: The "Smart Thermometer" (Regression)**. Predicts the exact, decimal temperature of the engine exhaust.
 2. **Branch B: The "Intelligent Fire Alarm" (Classification)**. A binary alarm that triggers if the engine enters the top 10% historical danger zone.
 
@@ -22,7 +16,7 @@ Below is the exhaustive list of every single file and folder in this project and
 *This is where the raw engine readings are stored.*
 * **`data/` (Folder):** The main container for all engine sensor readings.
 * **`data/raw/` (Folder):** Contains the untouched historical data.
-    * **`data/raw/AE_DATA_with_AvgEGT.csv` (File):** **(Use: Archival Storage)** The original spreadsheet of historical engine data you provided us. The AI reads this to learn how your engines behave.
+    * **`data/raw/AE_DATA_with_AvgEGT.csv` (File):** **(Use: Archival Storage)** The original spreadsheet of historical engine engine sensor records. The AI reads this to learn how your engines behave.
 * **`data/sanitized/` (Folder):** Contains cleaned data.
     * *(Note: During training, broken sensors and impossible temperatures are removed and processed here).*
 
@@ -32,10 +26,10 @@ Below is the exhaustive list of every single file and folder in this project and
 * **`classification_project/classification_model.pkl` (File):** **(Use: Live Alarm Triggering)** The frozen brain for the "Intelligent Fire Alarm" (Branch B).
 * **`scaler.pkl` (File):** **(Use: The Translator)** Translates massive physical numbers (like 50,000 PSI) into the tiny decimals (0 to 1) that the AI's brain can process.
 
-### 📓 3. The Client Deliverables (The Notebooks)
+### 📓 3. Interactive Operations & Audit Notebooks (The Notebooks)
 *Notebooks (files ending in `.ipynb`) are beautiful, interactive documents that combine code with text.*
 * **`notebooks/` (Folder):** Contains the final deliverables you can open and read.
-    * **`notebooks/Client_Prediction_Dashboard.ipynb` (File):** **(Use: Daily Operations)** Your daily driver. You open this to type in live sensor readings and instantly get a temperature and risk prediction.
+    * **`notebooks/Operations_Dashboard.ipynb` (File):** **(Use: Daily Operations)** Your daily driver. You open this to type in live sensor readings and instantly get a temperature and risk prediction.
     * **`notebooks/AvgEGT_Project_Notebook.ipynb` (File):** **(Use: Engineering Audit)** The unified master manual. If your engineers want to know the math behind both AI branches, they read this.
 * **`classification_project/Classification_Project_Notebook.ipynb` (File):** **(Use: Safety Audit)** A visual encyclopedia dedicated entirely to proving the Fire Alarm works flawlessly.
 
